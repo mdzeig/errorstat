@@ -57,14 +57,14 @@ calc_stats <- function (truth, estimate, stats, uppers)
 calc_stats.numeric <- function (truth, estimate, stats, uppers) {
 
     if (is.null(uppers))
-        calc_stats_whole(stats, truth, estimate)
+        calc_stats_whole(truth, estimate, stats)
     else
-        calc_stats_split(stats, truth, estimate, uppers)
+        calc_stats_split(truth, estimate, stats, uppers)
 }
 
 calc_stats.list <- function (truth, estimate, stats, uppers) {
 
-    as_error_list(mapply(calc_stat, truth, estimate,
+    as_error_list(mapply(calc_stats, truth, estimate,
                          if (is.list(uppers))
                              uppers
                          else
@@ -110,3 +110,8 @@ calc_bias <- function (truth, estimate) mean(estimate - truth)
 
 ## utility for getting last element of a vector
 back <- function (x) x[length(x)]
+
+
+## Local Variables:
+## ess-r-package-info: ("errorstat" . "~/Projects/errorstat/errorstat")
+## End:

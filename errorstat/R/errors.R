@@ -9,8 +9,7 @@
 ##' @param x an error or error_list object
 ##' @param labels labels to use instead of \code{names(x)}
 ##' @param label_name name of the label column
-##' @param stringsAsFactors should strings be recoded as factors?
-##' @param ... not implemented
+##' @param ... additional arguments to \code{data.frame}
 ##' @return a \code{data.frame}
 ##' @name data.frame-methods
 NULL
@@ -26,14 +25,14 @@ as.data.frame.error <- function(x, ...) {
 ##' @rdname data.frame-methods
 ##' @export
 as.data.frame.error_list <- function(x, labels = NULL, label_name = "label",
-                                     stringsAsFactors = default.stringsAsFactors(),
                                      ...) {
 
     dfs <- lapply(x, as.data.frame)
     y <- data.frame(rep(if (is.null(labels)) names(x) else labels,
                         sapply(dfs, nrow)),
-                    do.call(rbind, dfs))
+                    do.call(rbind, dfs), ...)
     names(y)[1] <- label_name
+    rownames(y) <- NULL
     y
 }
 
@@ -46,14 +45,16 @@ as_error <- function (x, ...) UseMethod("as_error")
 
 as_error.error <- function (x, ...) x
 
-as_error.default <- function (x, ...) {
+as_error.data.frame <- function (x, ...) {
 
-    y <- as.data.frame(x, ...)
     if (!("n" %in% names(x)))
         stop("cannot convert to error")
-    class(y) <- c("error", class(y))
-    y
+    class(x) <- c("error", class(x))
+    x
 }
+
+as_error.default <- function (x, ...)
+    as_error(as.data.frame(x, ...))
 
 ## convert to an error_list object
 as_error_list <- function (x, ...) UseMethod("as_error_list")
@@ -66,3 +67,7 @@ as_error_list.default <- function (x, ...) {
     class(y)  <- c("error_list", class(y))
     y
 }
+
+## Local Variables:
+## ess-r-package-info: ("errorstat" . "~/Projects/errorstat/errorstat")
+## End:

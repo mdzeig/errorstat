@@ -6,3 +6,8 @@
 ##' value.
 "_PACKAGE"
 
+
+
+## Local Variables:
+## ess-r-package-info: ("errorstat" . "~/Projects/errorstat/errorstat")
+## End:

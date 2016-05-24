@@ -45,13 +45,11 @@ combine_errors.error <- function (x, y) {
              error = function(e) stop("y argument invalid"))
 
     n <- x$n + y$n
-    make_error(
-        c(list(n = n),
+    error(n = n,
           mapply(combine_terms,
                  x[names(x) != "n"], y[names(y) != "n"],
                  MoreArgs = list(xn = x$n, yn = y$n, dn = n),
                  SIMPLIFY = FALSE))
-    )
 }
 
 ## dn = denominator n (= xn + yn)
@@ -60,3 +58,7 @@ combine_terms <- function (xv, yv, xn, yn, dn = xn + yn)
 
 error_term <- function (v, nn, dn)
     sign(v) * exp(log(nn) - log(dn) + log(abs(v)))
+
+## Local Variables:
+## ess-r-package-info: ("errorstat" . "~/Projects/errorstat/errorstat")
+## End:
