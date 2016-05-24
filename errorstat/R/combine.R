@@ -1,4 +1,4 @@
-## Part of the rstanarm package for estimating model parameters
+## Part of the errorstat package for computing error statistics
 ## Copyright (C) 2016 Matthew D. Zeigenfuse
 ##
 ## This program is free software; you can redistribute it and/or
