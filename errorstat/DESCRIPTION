@@ -1,0 +1,13 @@
+Package: errorstat
+Type: Package
+Title: Compute error statistics (e.g., MSE, bias)
+Version: 1.0
+Date: 2016-05-24
+Author: Matthew Zeigenfuse
+Maintainer: Matthew Zeigenfuse <mdzeig@gmail.com>
+Description:
+	Compute MSE, bias or user-defined error statistics. Primarily intended
+	for use in MCMC simulation studies.
+License: GPL >= 3
+Depends: R (>= 3.0.2)
+RoxygenNote: 5.0.1
