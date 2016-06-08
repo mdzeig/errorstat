@@ -39,9 +39,14 @@
 ##' and the values of each error summary.
 ##' @author Matthew Zeigenfuse
 ##' @examples
-##' truth <- rnorm(100)
-##' estimate <- rnorm(100)
-##' errorstat(truth, estimate, -2:2)
+##' \dontrun{
+##' library(eRm)
+##' truth <- list(trait = rnorm(100), thresh = rnorm(20))
+##' resp <- evalq(sim.rasch(trait, thresh), truth)
+##' ermfit <- RM(resp)
+##' ppfit <- person.parameter(ermfit)
+##' errorstat(truth, list(trait = coef(ppfit), thresh = -coef(ermfit)), -2:2)
+##' }
 ##' @export
 errorstat <- function (truth, estimate, uppers = NULL,
                        mse = TRUE, bias = TRUE, ...) {
@@ -75,17 +80,15 @@ handle_uppers <- function (uppers) {
 calc_stats <- function (truth, estimate, stats, uppers) {
   
   if (is.list(truth))   #repeatedly apply for lists
-    error_list(
-      mapply(calc_stats, truth, estimate,
-             if (is.list(uppers))
-               uppers
-             else
-               replicate(length(truth),
-                         uppers,
-                         simplify = FALSE),
-             MoreArgs = list(stats = stats),
-             SIMPLIFY = FALSE)
-    )
+    mapply(calc_stats, truth, estimate,
+           if (is.list(uppers))
+             uppers
+           else
+             replicate(length(truth),
+                       uppers,
+                       simplify = FALSE),
+           MoreArgs = list(stats = stats),
+           SIMPLIFY = FALSE)
   else if (is.null(uppers))
     calc_stats_whole(truth, estimate, stats)
   else
@@ -95,8 +98,8 @@ calc_stats <- function (truth, estimate, stats, uppers) {
 ## compute when uppers not given
 calc_stats_whole <- function(truth, estimate, stats) {
 
-  error(list(n = length(truth)),
-        lapply(stats, do.call, list(truth, estimate)))
+  errorcalc(length(truth), -Inf, Inf,
+            lapply(stats, do.call, list(truth, estimate)))
 }
 
 ## compute when uppers given
@@ -108,13 +111,11 @@ calc_stats_split <- function (truth, estimate, stats, uppers) {
   n <- diff(c(0, last, length(truth)))
   lastnz <- cumsum(n[n > 0])
   inds <- Map(seq, c(1, 1+front(lastnz)), lastnz)
-  data.frame(n = n, 
-             lwr = c(-Inf, uppers),
-             upr = c(uppers, Inf),
-             lapply(lapply(stats, map_stat,
-                           split_by_indices(truth, inds),
-                           split_by_indices(estimate[inc_order], inds)), 
-                    zeros_to_NA, n))
+  errorcalc(n, c(-Inf, uppers), c(uppers, Inf),
+            lapply(lapply(stats, map_stat,
+                          split_by_indices(truth, inds),
+                          split_by_indices(estimate[inc_order], inds)), 
+                   zeros_to_NA, n))
 }
 
 ## wrapper to mapply to avoid do.call

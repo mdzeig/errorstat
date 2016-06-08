@@ -15,9 +15,10 @@
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-##' Create a data.frame
+##' Create or bind error objects
 ##'
-##' \code{as.data.frame} converts an error or error_list object to a data.frame
+##' \code{as.data.frame} converts an error object to a data.frame and \code{rbind}
+##' vertically concatenates two error objects
 ##'
 ##' For error_list objects, \code{as.data.frame} will be called for each list
 ##' element and the resulting \code{data.frame}s will be concatentated row-wise.
@@ -33,58 +34,29 @@ NULL
 
 ##' @rdname data.frame-methods
 ##' @export
-as.data.frame.error <- function(x, ...) {
+as.data.frame.errorcalc <- function(x, ...) {
 
-    class(x) <- class(x)[class(x) != "error"]
-    x
+  class(x) <- class(x)[-1]
+  x
 }
 
 ##' @rdname data.frame-methods
 ##' @export
-as.data.frame.error_list <- function(x, labels = NULL, label_name = "label",
-                                     ...) {
-
-    dfs <- lapply(x, as.data.frame)
-    y <- data.frame(rep(if (is.null(labels)) names(x) else labels,
-                        sapply(dfs, nrow)),
-                    do.call(rbind, dfs), ...)
-    names(y)[1] <- label_name
-    rownames(y) <- NULL
-    y
+rbind.errorcalc <- function (...) {
+  
+  x <- list(...)
+  if (is.null(names(x)))
+    names(x) <- paste0("Var", length(x))
+  data.frame(label = rep(names(x), lengths(x)),
+             do.call(rbind, x))
+}
+ 
+## create an errorcalc object
+errorcalc <- function (n, lwr, upr, statlist) {
+  
+  x <- data.frame(n = n, lwr = lwr, upr = upr, statlist)
+  class(x) <- c("errorcalc", class(x))
+  x
 }
 
-## create an error object
-error <- function (n, ...)
-    as_error(data.frame(n = n, list(...)))
 
-## convert to an error object
-as_error <- function (x, ...) UseMethod("as_error")
-
-as_error.error <- function (x, ...) x
-
-as_error.data.frame <- function (x, ...) {
-
-    if (!("n" %in% names(x)))
-        stop("cannot convert to error")
-    class(x) <- c("error", class(x))
-    x
-}
-
-as_error.default <- function (x, ...)
-    as_error(as.data.frame(x, ...))
-
-## convert to an error_list object
-as_error_list <- function (x, ...) UseMethod("as_error_list")
-
-as_error_list.error_list <- function (x, ...) x
-
-as_error_list.default <- function (x, ...) {
-
-    y <- lapply(x, as_error)
-    class(y)  <- c("error_list", class(y))
-    y
-}
-
-## Local Variables:
-## ess-r-package-info: ("errorstat" . "~/Projects/errorstat/errorstat")
-## End:

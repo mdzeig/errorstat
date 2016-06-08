@@ -26,56 +26,65 @@
 ##' sample, which can be done by appropriately weighting the error
 ##' statistics themselves.
 ##'
-##' When additional objects are provided through the dots argument,
-##' they will be combined with x through \code{list(x, ...)}.
-##'
 ##' @title Aggregate a list of errors
 ##' @param x an error object or a list of error objects
-##' @param ... additional objects (see details)
+##' @param max_depth depth to check for an error object
 ##' @return A single error object or a list of error objects
 ##' @author Matthew Zeigenfuse
 ##' @export
-aggregate_errors <- function (x, ...)
-    Reduce(combine_errors, list(x, ...))
-
-## combine two error objects or two lists of error objects
-combine_errors <- function (x, y) UseMethod("combine_errors")
-
-## try to convert x to an error_list, then an error, then bail out.
-combine_errors.default <- function (x, y) {
-
-    tryCatch(xel <- as_error_list(x), error = function(e) NULL)
-    if (is.null(xel))
-        tryCatch(xel <- as_error(x),
-                 error = function(e) stop("x argument invalid"))
-    combine_errors(x, y)
+aggregate_errors <- function (x, ...) {
+  
+  y <- list(...)
+  Reduce(combine_errors, if (!length(y)) x else c(list(x), y))
 }
 
-## combine error lists
-combine_errors.error_list <- function (x, y)
-    as_error_list(Map(combine_errors, x, y))
-
-## base case where x and y are both error objects
-combine_errors.error <- function (x, y) {
-
-    tryCatch(y <- as_error(y),
-             error = function(e) stop("y argument invalid"))
-
+## combine two error objects or two lists of error objects
+combine_errors <- function (x, y) {
+  
+  if (is.null(x) || is.null(y))
+    stop("x and/or y argument invalid")
+  else if (inherits(x, "errorcalc") && inherits(y, "errorcalc")) {
+    stopifnot(compatible(x, y))
+    statnms <- get_stat_names(x)
     n <- x$n + y$n
-    error(n = n,
-          mapply(combine_terms,
-                 x[names(x) != "n"], y[names(y) != "n"],
-                 MoreArgs = list(xn = x$n, yn = y$n, dn = n),
-                 SIMPLIFY = FALSE))
+    errorcalc(n, x$lwr, x$upr,
+              mapply(combine_terms, x[statnms], y[statnms],
+                     MoreArgs = list(xn = x$n, yn = y$n, dn = n),
+                     SIMPLIFY = FALSE))
+  } else if (is.list(x) && is.list(y))
+    Map(combine_errors, x, y)
+  else
+    stop("x and/or y argument invalid")
 }
 
 ## dn = denominator n (= xn + yn)
-combine_terms <- function (xv, yv, xn, yn, dn = xn + yn)
-    error_term(xv, xn, dn) + error_term(yv, yn, dn)
+combine_terms <- function (xv, yv, xn, yn, dn = xn + yn) {
+  
+  z <- rep(NA, length(dn))
+  z[xn == 0 & yn > 0] <- yv[xn == 0 & yn > 0]
+  z[xn > 0 & yn == 0] <- xv[xn > 0 & yn == 0]
+  ii <- xn > 0 & yn > 0
+  z[ii] <- error_term(xv[ii], xn[ii], dn[ii]) + 
+    error_term(yv[ii], yn[ii], dn[ii])
+  z
+}
 
 error_term <- function (v, nn, dn)
-    sign(v) * exp(log(nn) - log(dn) + log(abs(v)))
+  sign(v) * exp(log(nn) - log(dn) + log(abs(v)))
 
-## Local Variables:
-## ess-r-package-info: ("errorstat" . "~/Projects/errorstat/errorstat")
-## End:
+# are two errorcalc objects compatible?
+compatible <- function (x, y) {
+  
+  inherits(x, "errorcalc") && 
+    inherits(y, "errorcalc") &&
+    nrow(x) == nrow(y) && 
+    all(x$lwr == y$lwr) &&
+    all(x$upr == y$upr) &&
+    setequal(names(x), names(y))
+}
+
+get_stat_names <- function(x)
+  names(x)[ !(names(x) %in% c("n", "lwr", "upr")) ]
+
+
+
