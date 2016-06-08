@@ -2,7 +2,7 @@
 title: "The `errorstat` Package"
 author: "Matthew D. Zeigenfuse"
 date: "June 8, 2016"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -19,8 +19,7 @@ The `errorstat` function computes the desired error statistics. Its first two ar
 
 The arguments `truth` and `estimate` can also lists of vectors of the same size. The length of each of these lists must be the same as well as the lengths of the corresponding vector elements. Lists of depth greater than one will be evaluated recursively, resulting in a list whose structure is identical to that of `truth` and `estimate` and whose leaves are the result of applying `errorstat` to each corresponding pair of leaves in `truth` and `estimate`. This is useful for computing error statistics for multiple variables.
 
-The following example illustrates how `errorstat` might be applied using the Rasch model. The Rasch model is a two-parameter model of test-taker performance. The first parameter $\theta$ is a length $P$ vector comprised of the abilities of the $P$ test takers, and the second parameter $\beta$ is a length $I$ vector comprised of the difficulties of the $I$ test items. It models the probability that test taker $p$ correctly responds to item $i$ as
-$$ P(\text{correct} \mid \theta_p, \beta_i) = \frac{1}{1 + e^{-(\theta_p - \beta_i)}}. $$
+The following example illustrates how `errorstat` might be applied using the Rasch model. The Rasch model is a two-parameter model of test-taker performance. The first parameter $\theta$ is a length $P$ vector comprised of the abilities of the $P$ test takers, and the second parameter $\beta$ is a length $I$ vector comprised of the difficulties of the $I$ test items. It models the probability that test taker $p$ correctly responds to item $i$ as the inverse logit of $\theta_p - \beta_i$.
 
 ```{r}
 library(errorstat)
