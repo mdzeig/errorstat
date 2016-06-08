@@ -38,6 +38,16 @@ dots argument. Each summary should be a function of two variables. The
 first of these variables is the true parameter value, and the second is
 the estimated parameter value.
 }
+\examples{
+\dontrun{
+library(eRm)
+truth <- list(trait = rnorm(100), thresh = rnorm(20))
+resp <- evalq(sim.rasch(trait, thresh), truth)
+ermfit <- RM(resp)
+ppfit <- person.parameter(ermfit)
+errorstat(truth, list(trait = coef(ppfit), thresh = -coef(ermfit)), -2:2)
+}
+}
 \author{
 Matthew Zeigenfuse
 }

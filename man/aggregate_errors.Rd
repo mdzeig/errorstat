@@ -9,7 +9,7 @@ aggregate_errors(x, ...)
 \arguments{
 \item{x}{an error object or a list of error objects}
 
-\item{...}{additional objects (see details)}
+\item{max_depth}{depth to check for an error object}
 }
 \value{
 A single error object or a list of error objects
@@ -26,9 +26,6 @@ In the simplest case where \code{x} is a list of error objects,
 the function will return the error statistics of the combined
 sample, which can be done by appropriately weighting the error
 statistics themselves.
-
-When additional objects are provided through the dots argument,
-they will be combined with x through \code{list(x, ...)}.
 }
 \author{
 Matthew Zeigenfuse
