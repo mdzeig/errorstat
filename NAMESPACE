@@ -3,4 +3,4 @@
 S3method(as.data.frame,errorcalc)
 export(aggregate_errors)
 export(errorstat)
-export(rbind.errorcalc)
+export(flatten)
