@@ -15,6 +15,8 @@
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+##' Compute one or more error summaries
+##'
 ##' \code{errorstat} computes one or more error summaries (e.g., MSE, bias)
 ##' in one or more bins defined by \code{uppers}
 ##'
@@ -28,7 +30,6 @@
 ##' first of these variables is the true parameter value, and the second is
 ##' the estimated parameter value.
 ##'
-##' @title Compute one or more error summaries
 ##' @param truth true values of the parameter
 ##' @param estimate estimated values of the parameter
 ##' @param uppers upper bounds of each interval
@@ -68,7 +69,7 @@ get_stats <- function (mse, bias, ...) {
 
 ## sort upper bounds if needed
 handle_uppers <- function (uppers) {
-  
+
   if (is.unsorted (uppers)) {
     warning ("upper unsorted. sorting")
     sort(uppers)
@@ -78,7 +79,7 @@ handle_uppers <- function (uppers) {
 
 ## route
 calc_stats <- function (truth, estimate, stats, uppers) {
-  
+
   if (is.list(truth))   #repeatedly apply for lists
     mapply(calc_stats, truth, estimate,
            if (is.list(uppers))
@@ -114,7 +115,7 @@ calc_stats_split <- function (truth, estimate, stats, uppers) {
   errorcalc(n, c(-Inf, uppers), c(uppers, Inf),
             lapply(lapply(stats, map_stat,
                           split_by_indices(truth, inds),
-                          split_by_indices(estimate[inc_order], inds)), 
+                          split_by_indices(estimate[inc_order], inds)),
                    zeros_to_NA, n))
 }
 
@@ -122,7 +123,7 @@ calc_stats_split <- function (truth, estimate, stats, uppers) {
 map_stat <- function (stat, truth, est) mapply(stat, truth, est)
 
 zeros_to_NA <- function (v, n) {
-  
+
   y <- rep(NA, length(n))
   y[n > 0] <- v
   y
