@@ -15,24 +15,32 @@
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-##' Create or bind error objects
+##' "Flatten" error objects
 ##'
-##' \code{as.data.frame} converts an error object to a data.frame and \code{rbind}
-##' vertically concatenates two error objects
+##' Flatten nested error objects into data.
 ##'
-##' For error_list objects, \code{as.data.frame} will be called for each list
-##' element and the resulting \code{data.frame}s will be concatentated row-wise.
-##' An addition column labelling the elements will be appended.
+##' The purpose of this function is to convert lists of error statistics into
+##' a single data.frame, so that they can be easily plotted or summarized. The
+##' result data.frame contains the various error computations stacked vertically
+##' with one or more additional columns indicating each computation's place in
+##' original list. The names of the addional columns are given by the \code{labels}
+##' argument.
 ##'
-##' @param x an error or error_list object
-##' @param labels labels to use instead of \code{names(x)}
-##' @param label_name name of the label column
-##' @param ... additional arguments to \code{data.frame}
+##' @param x an errorcalc object of a list of errorcalc object
+##' @param ... optionally, addition errorcalc objects
+##' @param labels optional column labels for the resulting data.frame
 ##' @return a \code{data.frame}
-##' @name data.frame-methods
-NULL
+##' @export
+flatten <- function(x, ..., labels = NULL) {
 
-##' @rdname data.frame-methods
+  stopifnot(is.character(labels) || is.null(labels))
+  flat <- flatten_base(form_list(x, ...),
+                       if (is.null(labels)) 1L else labels)
+  rownames(flat) <- NULL
+  flat
+}
+
+##' @describeIn flatten Convert an errorcalc object to a data.frame
 ##' @export
 as.data.frame.errorcalc <- function(x, ...) {
 
@@ -40,23 +48,44 @@ as.data.frame.errorcalc <- function(x, ...) {
   x
 }
 
-##' @rdname data.frame-methods
-##' @export
-rbind.errorcalc <- function (...) {
-  
-  x <- list(...)
-  if (is.null(names(x)))
-    names(x) <- paste0("Var", length(x))
-  data.frame(label = rep(names(x), lengths(x)),
-             do.call(rbind, x))
+## flattening workhorse
+flatten_base <- function(x, labels) {
+
+  if (inherits(x, "errorcalc"))
+    return(as.data.frame(x))
+
+  xdfs <- lapply(x, flatten_base,
+                 if (is.character(labels)) labels[-1]
+                 else labels + 1)
+  xdfs <- lapply(x, flatten_base, labels[-1])
+  xflat <- data.frame(field = rep(if (is.null(names(x))) seq_along(x)
+                                  else names(x),
+                                  sapply(xdfs, nrow)),
+                      do.call(rbind, xdfs))
+  names(xflat)[1] <- if (is.character(labels)) labels[1]
+                     else paste0("Var", labels)
+  xflat
 }
- 
+
 ## create an errorcalc object
 errorcalc <- function (n, lwr, upr, statlist) {
-  
-  x <- data.frame(n = n, lwr = lwr, upr = upr, statlist)
+
+  x <- data.frame(n = n,
+                  ival = interval_factor(lwr, upr),
+                  statlist)
   class(x) <- c("errorcalc", class(x))
   x
 }
 
+interval_factor <- function(lwr, upr) {
 
+  lwrfac <- ordered(lwr)
+  ordered(
+    lwrfac,
+    levels(lwrfac),
+    gsub("Inf]", "Inf)",
+         sprintf("(%s, %s]",
+                 levels(lwrfac),
+                 levels(ordered(upr))))
+  )
+}
