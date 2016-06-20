@@ -6,7 +6,7 @@ June 8, 2016
 Overview
 --------
 
-The `errorstat` package provides convenient routines for computing mean-squared error (MSE), bias and other statistics. These other statstics can be provided by the user as two-argument functions, where the first argument is the true parameter values and the second is the estimated parameter values. It provides two functions: `errorstat` and `aggregate_errors`.
+The `errorstat` package provides convenient routines for computing mean-squared error (MSE), bias and other statistics. These other statstics can be provided by the user as two-argument functions, where the first argument is the true parameter values and the second is the estimated parameter values. It provides three functions -- `errorstat`, `aggregate_errors` and `flatten` -- which together provide a workflow for computing estimation error for individual simulations and aggregating across a study.
 
 The `errorstat` function
 ========================
@@ -31,22 +31,22 @@ errorstat(list(ability = ability, difflty = difflty),
 ```
 
     ## $ability
-    ##    n  lwr upr       mse      bias
-    ## 1  1 -Inf  -2 0.1486522 0.3855545
-    ## 2  8   -2  -1 0.2855503 0.4238816
-    ## 3 36   -1   0 0.6627515 0.4969039
-    ## 4 34    0   1 0.5693715 0.5579290
-    ## 5 19    1   2 1.7835212 0.8348691
-    ## 6  2    2 Inf 1.5904620 1.2280329
+    ##    n       ival       mse      bias
+    ## 1  3 (-Inf, -2] 0.1256102 0.2057861
+    ## 2 18   (-2, -1] 0.7663484 0.1731269
+    ## 3 31    (-1, 0] 0.4515078 0.3178738
+    ## 4 29     (0, 1] 0.4232712 0.2741479
+    ## 5 18     (1, 2] 0.8833904 0.3979069
+    ## 6  1   (2, Inf) 0.8181884 0.9045377
     ## 
     ## $difflty
-    ##   n  lwr upr       mse      bias
-    ## 1 0 -Inf  -2        NA        NA
-    ## 2 6   -2  -1 0.2822356 0.4324382
-    ## 3 8   -1   0 0.2718680 0.4715784
-    ## 4 5    0   1 0.1259115 0.2668605
-    ## 5 1    1   2 0.2244335 0.4737442
-    ## 6 0    2 Inf        NA        NA
+    ##   n       ival        mse       bias
+    ## 1 2 (-Inf, -2] 0.04072188 0.18341970
+    ## 2 1   (-2, -1] 0.01931849 0.13899097
+    ## 3 8    (-1, 0] 0.09237183 0.14080046
+    ## 4 5     (0, 1] 0.13451456 0.28661669
+    ## 5 4     (1, 2] 0.04296765 0.09962288
+    ## 6 0   (2, Inf)         NA         NA
 
 For a more complicated example, suppose we would like to compute error statistics separately for items 1-10 and 11-20. With `errorstat`, this can be accomplished by
 
@@ -61,32 +61,32 @@ errorstat(list(ability = ability,
 ```
 
     ## $ability
-    ##    n  lwr upr       mse      bias
-    ## 1  1 -Inf  -2 0.1486522 0.3855545
-    ## 2  8   -2  -1 0.2855503 0.4238816
-    ## 3 36   -1   0 0.6627515 0.4969039
-    ## 4 34    0   1 0.5693715 0.5579290
-    ## 5 19    1   2 1.7835212 0.8348691
-    ## 6  2    2 Inf 1.5904620 1.2280329
+    ##    n       ival       mse      bias
+    ## 1  3 (-Inf, -2] 0.1256102 0.2057861
+    ## 2 18   (-2, -1] 0.7663484 0.1731269
+    ## 3 31    (-1, 0] 0.4515078 0.3178738
+    ## 4 29     (0, 1] 0.4232712 0.2741479
+    ## 5 18     (1, 2] 0.8833904 0.3979069
+    ## 6  1   (2, Inf) 0.8181884 0.9045377
     ## 
     ## $difflty
     ## $difflty$first10
-    ##   n  lwr upr       mse      bias
-    ## 1 0 -Inf  -2        NA        NA
-    ## 2 3   -2  -1 0.4824749 0.5942681
-    ## 3 3   -1   0 0.2249083 0.4260898
-    ## 4 3    0   1 0.1697268 0.2845410
-    ## 5 1    1   2 0.2244335 0.4737442
-    ## 6 0    2 Inf        NA        NA
+    ##   n       ival        mse       bias
+    ## 1 2 (-Inf, -2] 0.04072188 0.18341970
+    ## 2 0   (-2, -1]         NA         NA
+    ## 3 5    (-1, 0] 0.09525447 0.05487687
+    ## 4 2     (0, 1] 0.25227195 0.41671079
+    ## 5 1     (1, 2] 0.02921399 0.17092100
+    ## 6 0   (2, Inf)         NA         NA
     ## 
     ## $difflty$last10
-    ##   n  lwr upr        mse      bias
-    ## 1 0 -Inf  -2         NA        NA
-    ## 2 3   -2  -1 0.08199619 0.2706082
-    ## 3 5   -1   0 0.30004382 0.4988716
-    ## 4 2    0   1 0.06018863 0.2403398
-    ## 5 0    1   2         NA        NA
-    ## 6 0    2 Inf         NA        NA
+    ##   n       ival        mse       bias
+    ## 1 0 (-Inf, -2]         NA         NA
+    ## 2 1   (-2, -1] 0.01931849 0.13899097
+    ## 3 3    (-1, 0] 0.08756744 0.28400645
+    ## 4 3     (0, 1] 0.05600964 0.19988729
+    ## 5 3     (1, 2] 0.04755221 0.07585684
+    ## 6 0   (2, Inf)         NA         NA
 
 The `aggregate_errors` function
 ===============================
@@ -128,22 +128,22 @@ aggregate_errors(
 ```
 
     ## $ability
-    ##     n  lwr upr       mse        bias
-    ## 1   9 -Inf  -2 0.7548158 -0.24692693
-    ## 2  44   -2  -1 0.2084815 -0.01406018
-    ## 3  98   -1   0 0.2947903  0.08918933
-    ## 4 104    0   1 0.2376677  0.12948329
-    ## 5  39    1   2 0.6157623  0.25775407
-    ## 6   6    2 Inf 0.3449253 -0.06516213
+    ##     n       ival       mse         bias
+    ## 1   8 (-Inf, -2] 0.4163801 -0.288407799
+    ## 2  45   (-2, -1] 0.6031102 -0.178171991
+    ## 3 112    (-1, 0] 0.3410118  0.004088996
+    ## 4  82     (0, 1] 0.3743609 -0.004022767
+    ## 5  45     (1, 2] 0.6799557  0.260647294
+    ## 6   8   (2, Inf) 1.0269986  0.194179149
     ## 
     ## $difflty
-    ##    n  lwr upr        mse       bias
-    ## 1  0 -Inf  -2         NA         NA
-    ## 2  9   -2  -1 0.03883069 0.07828052
-    ## 3 25   -1   0 0.06939020 0.06623807
-    ## 4 18    0   1 0.08756423 0.15188967
-    ## 5  8    1   2 0.04021369 0.12884639
-    ## 6  0    2 Inf         NA         NA
+    ##    n       ival         mse        bias
+    ## 1  1 (-Inf, -2] 0.002588679 -0.05087906
+    ## 2  9   (-2, -1] 0.098306323 -0.02457959
+    ## 3 24    (-1, 0] 0.133257104  0.01689882
+    ## 4 14     (0, 1] 0.103851326  0.14618287
+    ## 5 11     (1, 2] 0.048150936 -0.10728406
+    ## 6  1   (2, Inf) 0.342083128 -0.58487873
 
 The `aggregate_errors` function can also aggregate across more complicated list structures. For example, we could separate the MSE and bias of items 1-10 from 11-20 as follows.
 
@@ -153,42 +153,70 @@ split_difflty <- function(x) {
        difflty = list(first10 = x$difflty[1:10],
                       last10 = x$difflty[11:20]))
 }
-aggregate_errors(
+(split_error <- aggregate_errors(
   errorstat(lapply(truth, split_difflty),
             lapply(ests, split_difflty),
             -2:2)
-)
+))
 ```
 
     ## $ability
-    ##     n  lwr upr       mse        bias
-    ## 1   9 -Inf  -2 0.7548158 -0.24692693
-    ## 2  44   -2  -1 0.2084815 -0.01406018
-    ## 3  98   -1   0 0.2947903  0.08918933
-    ## 4 104    0   1 0.2376677  0.12948329
-    ## 5  39    1   2 0.6157623  0.25775407
-    ## 6   6    2 Inf 0.3449253 -0.06516213
+    ##     n       ival       mse         bias
+    ## 1   8 (-Inf, -2] 0.4163801 -0.288407799
+    ## 2  45   (-2, -1] 0.6031102 -0.178171991
+    ## 3 112    (-1, 0] 0.3410118  0.004088996
+    ## 4  82     (0, 1] 0.3743609 -0.004022767
+    ## 5  45     (1, 2] 0.6799557  0.260647294
+    ## 6   8   (2, Inf) 1.0269986  0.194179149
     ## 
     ## $difflty
     ## $difflty$first10
-    ##    n  lwr upr        mse        bias
-    ## 1  0 -Inf  -2         NA          NA
-    ## 2  7   -2  -1 0.04645690 0.131777002
-    ## 3 11   -1   0 0.08832693 0.002452345
-    ## 4  9    0   1 0.03716130 0.067322572
-    ## 5  3    1   2 0.01693161 0.129159426
-    ## 6  0    2 Inf         NA          NA
+    ##    n       ival        mse        bias
+    ## 1  0 (-Inf, -2]         NA          NA
+    ## 2  5   (-2, -1] 0.03622968  0.10823357
+    ## 3 14    (-1, 0] 0.13122531 -0.04688822
+    ## 4  5     (0, 1] 0.08323396  0.06619882
+    ## 5  5     (1, 2] 0.06566561 -0.04960033
+    ## 6  1   (2, Inf) 0.34208313 -0.58487873
     ## 
     ## $difflty$last10
-    ##    n  lwr upr        mse       bias
-    ## 1  0 -Inf  -2         NA         NA
-    ## 2  2   -2  -1 0.01213898 -0.1089571
-    ## 3 14   -1   0 0.05451134  0.1163554
-    ## 4  9    0   1 0.13796716  0.2364568
-    ## 5  5    1   2 0.05418293  0.1286586
-    ## 6  0    2 Inf         NA         NA
+    ##    n       ival         mse        bias
+    ## 1  1 (-Inf, -2] 0.002588679 -0.05087906
+    ## 2  4   (-2, -1] 0.175902132 -0.19059605
+    ## 3 10    (-1, 0] 0.136101613  0.10620067
+    ## 4  9     (0, 1] 0.115305418  0.19061845
+    ## 5  6     (1, 2] 0.033555375 -0.15535384
+    ## 6  0   (2, Inf)          NA          NA
 
 The `flatten` function
 ======================
 
-TODO
+The `flatten` function creates a `data.frame` from a list of errors. The resulting `data.frame` will contain the error statistics of each list element concatenated vertically and one or more columns of labels. The names of these columns can be provided by the user via the `labels` argument. The value associated with each element is determined either by the `names` attribute or list index.
+
+Suppose for example that we would like to combine and plot MSE statistics in `split_error`. We can achieve this using `ggplot2` as follows.
+
+``` r
+(flat_errors <- flatten(split_error$difflty, labels = "items"))
+```
+
+    ##      items  n       ival         mse        bias
+    ## 1  first10  0 (-Inf, -2]          NA          NA
+    ## 2  first10  5   (-2, -1] 0.036229675  0.10823357
+    ## 3  first10 14    (-1, 0] 0.131225311 -0.04688822
+    ## 4  first10  5     (0, 1] 0.083233959  0.06619882
+    ## 5  first10  5     (1, 2] 0.065665609 -0.04960033
+    ## 6  first10  1   (2, Inf) 0.342083128 -0.58487873
+    ## 7   last10  1 (-Inf, -2] 0.002588679 -0.05087906
+    ## 8   last10  4   (-2, -1] 0.175902132 -0.19059605
+    ## 9   last10 10    (-1, 0] 0.136101613  0.10620067
+    ## 10  last10  9     (0, 1] 0.115305418  0.19061845
+    ## 11  last10  6     (1, 2] 0.033555375 -0.15535384
+    ## 12  last10  0   (2, Inf)          NA          NA
+
+``` r
+library(ggplot2)
+ggplot(flat_errors, aes(ival, mse, fill = items)) + 
+  geom_bar(stat = "identity", position = "dodge")
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-5-1.png)

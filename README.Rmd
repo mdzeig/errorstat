@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Overview
 
-The `errorstat` package provides convenient routines for computing mean-squared error (MSE), bias and other statistics. These other statstics can be provided by the user as two-argument functions, where the first argument is the true parameter values and the second is the estimated parameter values. It provides two functions: `errorstat` and `aggregate_errors`. 
+The `errorstat` package provides convenient routines for computing mean-squared error (MSE), bias and other statistics. These other statstics can be provided by the user as two-argument functions, where the first argument is the true parameter values and the second is the estimated parameter values. It provides three functions -- `errorstat`, `aggregate_errors` and `flatten` -- which together provide a workflow for computing estimation error for individual simulations and aggregating across a study.
 
 # The `errorstat` function
 
@@ -93,12 +93,24 @@ split_difflty <- function(x) {
        difflty = list(first10 = x$difflty[1:10],
                       last10 = x$difflty[11:20]))
 }
-aggregate_errors(
+(split_error <- aggregate_errors(
   errorstat(lapply(truth, split_difflty),
             lapply(ests, split_difflty),
             -2:2)
-)
+))
 ```
 
 # The `flatten` function
-TODO
+
+The `flatten` function creates a `data.frame` from a list of errors. The resulting `data.frame` will contain the error statistics of each list element concatenated vertically and one or more columns of labels.  The names of these columns can be provided by the user via the `labels` argument. The value associated with each element is determined either by the `names` attribute or list index.
+
+Suppose for example that we would like to combine and plot MSE statistics in `split_error`. We can achieve this using `ggplot2` as follows.
+
+```{r}
+(flat_errors <- flatten(split_error$difflty, labels = "items"))
+library(ggplot2)
+ggplot(flat_errors, aes(ival, mse, fill = items)) + 
+  geom_bar(stat = "identity", position = "dodge")
+```
+
+
